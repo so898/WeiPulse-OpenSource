@@ -1,0 +1,321 @@
+//
+//  WeiBoHttpManager.h
+//  test
+//
+//  Created by jianting zhu on 11-12-31.
+//  Copyright (c) 2011年 Dunbar Science & Technology. All rights reserved.
+//
+//  Amended by Bill Cheng on 07/07/2012
+//  Copyright (c) 2012 R3 Studio All rights reserved.
+
+#import <Foundation/Foundation.h>
+#import "AFHTTPRequestOperation.h"
+#import "AFHTTPClient.h"
+#import "StringUtil.h"
+#import "NSStringAdditions.h"
+#import "Comment.h"
+
+#define SINA_V2_DOMAIN              @"https://api.weibo.com/2"
+#define SINA_API_AUTHORIZE          @"https://api.weibo.com/oauth2/authorize"
+#define SINA_API_ACCESS_TOKEN       @"https://api.weibo.com/oauth2/access_token"
+
+#warning Enter your app key and delete this line
+#define SINA_APP_KEY                @""
+#warning Enter your app secret and delete this line
+#define SINA_APP_SECRET             @""
+#define REDIRECT_URL                 @"http://about.me/so898"
+
+#define USER_INFO_KEY_TYPE          @"requestType"
+
+#define USER_STORE_ACCESS_TOKEN     @"SinaAccessToken"
+#define USER_STORE_EXPIRATION_DATE  @"SinaExpirationDate"
+#define USER_STORE_USER_ID          @"SinaUserID"
+#define USER_STORE_USER_NAME        @"SinaUserName"
+#define USER_OBJECT                 @"USER_OBJECT"
+#define USER_AVAST                  @"SinaUserAvast"
+#define NeedToReLogin               @"NeedToReLogin"
+
+#define MMSinaRequestFailed         @"MMSinaRequestFailed"
+
+typedef enum {
+    SinaGetOauthCode = 0,           //authorize_code
+    SinaGetOauthToken,              //access_token
+    SinaGetRefreshToken,            //refresh_token
+    SinaGetPublicTimeline,          //获取最新的公共微博
+    SinaGetUserID,                  //获取登陆用户的UID
+    SinaGetUserInfo,                //获取任意一个用户的信息
+    SinaGetBilateralIdList,         //获取用户双向关注的用户ID列表，即互粉UID列表
+    SinaGetBilateralIdListAll,      
+    SinaGetBilateralUserList,       //获取用户的双向关注user列表，即互粉列表
+    SinaGetBilateralUserListAll,
+    SinaFollowByUserID,             //关注一个用户 by User ID
+    SinaFollowByUserName,           //关注一个用户 by User Name
+    SinaUnfollowByUserID,           //取消关注一个用户 by User ID
+    SinaUnfollowByUserName,         //取消关注一个用户 by User Name
+    SinaGetTrendStatues,            //获取某话题下的微博消息
+    SinaFollowTrend,                //关注某话题
+    SinaUnfollowTrend,              //取消对某话题的关注
+    SinaPostText,                   //发布文字微博
+    SinaPostTextAndImage,           //发布文字图片微博
+    SinaGetHomeLine,                //获取当前登录用户及其所关注用户的最新微博
+    SinaGetComment,                 //根据微博消息ID返回某条微博消息的评论列表
+    SinaGetUserStatus,              //获取某个用户最新发表的微博列表
+    SinaRepost,                     //转发一条微博
+    SinaComment,                    //评论一条微博
+    SinaCommentOnComment,           //回复一条评论
+    SinaGetFollowingUserList,       //获取用户的关注列表
+    SinaGetFollowedUserList,        //获取用户粉丝列表
+    SinaGetHotRepostDaily,          //按天返回热门微博转发榜的微博列表
+    SinaGetHotCommentDaily,         //按天返回热门微博评论榜的微博列表
+    SinaGetHot,                     //返回推荐热门信息
+    SinaGetUnreadCount,             //获取某个用户的各种消息未读数
+    SINAGetMetionsStatuses,         //获取最新的提到登录用户的微博列表，即@我的微博
+    SinaFriendShips,                //获取两个用户之间的关系
+    SinaDeleteMessage,              //删除一条微博
+    SinaGetRepost,                  //根据微博消息ID返回某条微博消息的转发列表
+    SINAGetCommentsStatuses,        //获取登录用户的评论
+    SinaSignOut,                    //登出
+    SinaGetActiveFollower,          //获取优质粉丝
+    SinaGetHotTrend,                //获得热门话题
+}RequestType;
+
+@class ASINetworkQueue;
+@class Status;
+@class User;
+
+
+//Delegate
+@protocol WeiBoHttpDelegate <NSObject>
+
+@optional
+//获取最新的公共微博
+-(void)didGetPublicTimelineWithStatues:(NSArray*)statusArr;
+
+//获取登陆用户的UID
+-(void)didGetUserID:(NSString*)userID;
+
+//用户登出
+-(void)didSignOut:(User*)user;
+
+//获取任意一个用户的信息
+-(void)didGetUserInfo:(User*)user;
+
+//根据微博消息ID返回某条微博消息的评论列表
+-(void)didGetCommentList:(NSDictionary *)commentInfo;
+
+//根据微博消息ID返回某条微博消息的评论列表
+-(void)didGetRepostList:(NSDictionary *)Reposts;
+
+//获取用户双向关注的用户ID列表，即互粉UID列表
+-(void)didGetBilateralIdList:(NSArray*)arr;
+
+//获取用户的双向关注user列表，即互粉列表
+-(void)didGetBilateralUserList:(NSArray*)userArr;
+
+//获取用户的关注列表
+-(void)didGetFollowingUsersList:(NSDictionary*)userDic;
+
+//获取用户粉丝列表
+-(void)didGetFollowedUsersList:(NSDictionary*)userDic;
+
+//获取某话题下的微博消息
+-(void)didGetTrendStatues:(NSArray*)statusArr;
+
+//关注一个用户 by User ID
+-(void)didFollowByUserIDWithResult:(NSDictionary*)resultDic;
+
+//取消关注一个用户 by User ID
+-(void)didUnfollowByUserIDWithResult:(NSDictionary*)resultDic;
+
+//关注某话题
+-(void)didGetTrendIDAfterFollowed:(int64_t)topicID;
+
+//取消对某话题的关注
+-(void)didGetTrendResultAfterUnfollowed:(BOOL)isTrue;
+
+//获取热门话题
+-(void)didGetHotTrends:(NSArray *)trends;
+
+//发布微博
+-(void)didGetPostResult:(Status*)sts;
+
+//获取当前登录用户及其所关注用户的最新微博
+-(void)didGetHomeLine:(NSArray*)statusArr;
+
+//获取某个用户最新发表的微博列表
+-(void)didGetUserStatus:(NSArray*)statusArr;
+
+//转发一条微博
+-(void)didRepost:(Status*)sts;
+
+//评论一条微博
+-(void)didComment:(Comment*)com;
+
+//按天返回热门微博转发榜的微博列表
+-(void)didGetHotRepostDaily:(NSArray*)statusArr;
+
+//按天返回热门微博评论榜的微博列表
+-(void)didGetHotCommentDaily:(NSArray*)statusArr;
+
+//获取推荐的热门信息
+-(void)didGetHot:(NSArray*)statusArr;
+
+//获取某个用户的各种消息未读数
+-(void)didGetUnreadCount:(NSDictionary*)dic;
+
+//获取最新的提到登录用户的微博列表，即@我的微博
+-(void)didGetMetionsStatused:(NSArray*)statusArr;
+
+//获取两个用户之间的关系
+-(void)didGetFriendShips:(NSDictionary*)result;
+
+//获取优质粉丝
+-(void)didGetActiveFollower:(NSArray*)userArr;
+
+//删除一条微博
+-(void)didDelete:(Status*)sts;
+
+//获取登录用户的评论列表
+-(void)didGetCommentsStatused:(NSArray *)commentArray;
+
+-(void)requestFailed:(NSError*)error;
+
+-(void)NeedRelogin;
+
+@end
+
+@interface WeiBoHttpManager : NSObject
+{
+    id<WeiBoHttpDelegate> __unsafe_unretained delegate;
+    
+    NSString *authCode;
+    NSString *authToken;
+    NSString *userId;
+}
+
+@property (nonatomic,unsafe_unretained) id<WeiBoHttpDelegate> delegate;
+@property (nonatomic,copy) NSString *authCode;
+@property (nonatomic,copy) NSString *authToken;
+@property (nonatomic,copy) NSString *userId;
+
+- (id)initWithDelegate:(id)theDelegate;
+
+//留给webview用
+-(NSURL*)getOauthCodeUrl;
+
+//temp
+//获取最新的公共微博
+-(void)getPublicTimelineWithCount:(int)count withPage:(int)page;
+
+//获取登陆用户的UID
+-(void)getUserID;
+
+//登出用户
+-(void)signOut;
+
+//获取任意一个用户的信息
+-(void)getUserInfoWithUserID:(long long)uid;
+
+//获取任意一个用户的信息
+-(void)getUserInfoWithUserName:(NSString *)name;
+
+//根据微博消息ID返回某条微博消息的评论列表
+-(void)getCommentListWithID:(long long)weiboID since:(long long)since_id;
+
+//根据微博消息ID返回某条微博消息的转发列表
+-(void)getRepostListWithID:(long long)weiboID since:(long long)since_id;
+
+//获取用户双向关注的用户ID列表，即互粉UID列表 
+-(void)getBilateralIdListAll:(long long)uid sort:(int)sort;
+-(void)getBilateralIdList:(long long)uid count:(int)count page:(int)page sort:(int)sort;
+
+//获取用户的关注列表
+-(void)getFollowingUserList:(long long)uid count:(int)count cursor:(int)cursor;
+
+//获取用户粉丝列表
+-(void)getFollowedUserList:(long long)uid count:(int)count cursor:(int)cursor;
+
+//获取用户的双向关注user列表，即互粉列表
+-(void)getBilateralUserList:(long long)uid count:(int)count page:(int)page sort:(int)sort;
+-(void)getBilateralUserListAll:(long long)uid sort:(int)sort;
+
+//关注一个用户 by User ID
+-(void)followByUserID:(long long)uid;
+
+//关注一个用户 by User Name
+-(void)followByUserName:(NSString*)userName;
+
+//取消关注一个用户 by User ID
+-(void)unfollowByUserID:(long long)uid;
+
+//取消关注一个用户 by User Name
+-(void)unfollowByUserName:(NSString*)userName;
+
+//获取某话题下的微博消息
+-(void)getTrendStatues:(NSString *)trendName;
+
+//关注某话题
+-(void)followTrend:(NSString*)trendName;
+
+//取消对某话题的关注
+-(void)unfollowTrend:(long long)trendID;
+
+//获取热门话题
+-(void)getHotTrend;
+
+//发布文字微博
+-(void)postWithText:(NSString*)text;
+
+//发布文字位置微博
+-(void)postWithText:(NSString*)text:(float)po_lat:(float)po_long;
+
+//发布文字图片微博
+-(void)postWithText:(NSString *)text image:(UIImage*)image;
+
+//发布文字图片位置微博
+-(void)postWithText:(NSString *)text image:(UIImage*)image:(float)po_lat:(float)po_long;
+
+//获取当前登录用户及其所关注用户的最新微博
+-(void)getHomeLine:(int64_t)sinceID maxID:(int64_t)maxID count:(int)count page:(int)page baseApp:(int)baseApp feature:(int)feature;
+
+//获取某个用户最新发表的微博列表
+-(void)getUserStatusUserID:(NSString *) uid sinceID:(int64_t)sinceID maxID:(int64_t)maxID count:(int)count page:(int)page baseApp:(int)baseApp feature:(int)feature;
+
+//转发一条微博
+//isComment(int):是否在转发的同时发表评论，0：否、1：评论给当前微博、2：评论给原微博、3：都评论，默认为0 。
+-(void)repost:(NSString*)weiboID content:(NSString*)content withComment:(int)isComment;
+
+//评论一条微博
+-(void)comment:(NSString*)weiboID content:(NSString*)content commentOri:(int)isComment;
+
+//回复一条评论
+-(void)commentOnComment:(NSString *)commentID weiboID:(NSString*)weiboID content:(NSString*)content commentOri:(int)isComment;
+
+//按天返回热门微博转发榜的微博列表
+-(void)getHotRepostDaily:(int)count;
+
+//按天返回热门微博评论榜的微博列表
+-(void)getHotCommnetDaily:(int)count;
+
+//返回推荐的热门信息
+-(void)getHot:(int)type is_pic:(BOOL)is;
+
+//获取某个用户的各种消息未读数
+-(void)getUnreadCount:(NSString*)uid;
+
+//获取最新的提到登录用户的微博列表，即@我的微博
+-(void)getMetionsStatuses :(int64_t)sinceID maxID:(int64_t)maxID count:(int)count;
+
+//获取登录用户的评论列表
+-(void)getCommentsStatuses :(int64_t)sinceID maxID:(int64_t)maxID count:(int)count;
+
+//获取两个用户之间的关系
+-(void)getFriendShips:(int64_t)source_id sourceName:(NSString*)source_name targetId:(int64_t)target_id targetName:(NSString *)targetName;
+
+//获取优质粉丝
+-(void)getActiveFollower:(long long)uid count:(int)count;
+
+//删除一条微博
+-(void)deleteMessage:(int64_t)ID;
+
+@end

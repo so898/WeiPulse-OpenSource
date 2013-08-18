@@ -1,0 +1,17 @@
+//
+// Prefix header for all source files of the 'WeiPulse' target in the 'WeiPulse' project
+//
+
+#import <Availability.h>
+#define TABLE_CELL_MENU        @"TableCellMenu"
+#define TABLE_CELL_MENU_NUM        @"TableCellMenuNum"
+
+#define DID_GET_TOKEN_IN_WEB_VIEW @"didGetTokenInWebView"
+#ifndef __IPHONE_3_0
+#warning "This project uses features only available in iOS SDK 3.0 and later."
+#endif
+
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+#endif
