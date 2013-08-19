@@ -21,7 +21,7 @@ WeiPulse2已发布：https://itunes.apple.com/cn/app/weipulse-xin-lang-ban/id551
 参见文章：http://zhuanlan.zhihu.com/so898/19570508
 
 #使用注意
-1. 你需要自行填充新浪的App Secrect和App key
+1. 你需要自行填充新浪的App Secret和App key
 2. 此项目没有针对iPhone5进行匹配
 3. 项目制作的时候确实使用了ARC，我也在一定程度上修正了由于ARC与非ARC代码混杂造成的内存问题，不过问题还是有的，剩下的你要自己修
 4. 软件使用的某些图片资源有版权限制，不过我忘记是那些了……
