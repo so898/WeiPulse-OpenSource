@@ -13,11 +13,12 @@ WeiPulse是我个人第一个iOS项目，关于制作和设计方面的内容可
 #关于WeiPulse的发展
 在上面提到的事情发生之后，我放弃了对于WeiPulse的开发
 当时对于这个项目『杀意已决』，遂放弃了1.X版本所有代码，制作了一个全新的WeiPulse 2.0
-现在WeiPulse 2.0还在审核之中，大家可以去https://app.io/w4rmIJ 试玩一下
+WeiPulse2已发布：https://itunes.apple.com/cn/app/weipulse-xin-lang-ban/id551685241?ls=1&mt=8
+试用地址：https://app.io/w4rmIJ
 
 #还有啥？
 接下来我应该会在知乎的专栏里面写一篇文章介绍WeiPulse 2.0版本的创作和设计思路
-欢迎关注专栏http://zhuanlan.zhihu.com/so898 等待更新
+参见文章：http://zhuanlan.zhihu.com/so898/19570508
 
 #使用注意
 1. 你需要自行填充新浪的App Secrect和App key
